@@ -2,17 +2,32 @@ name: Trigger Email Reactivation API
 
 on:
   schedule:
-    # Run every day at midnight UTC (adjust as needed)
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * *'  # Runs every day at midnight UTC (adjust as needed)
   workflow_dispatch:
 
 jobs:
   trigger:
     runs-on: ubuntu-latest
     steps:
-      - name: Call Email Reactivation API
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Call Email Reactivation API and Save Response
         run: |
+          # Get the current timestamp
+          TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+          # Create a filename that includes the timestamp
+          FILENAME="api_response_${TIMESTAMP}.json"
+          # Call the API and save its response to the file
           curl -X POST \
             -H "Content-Type: application/json" \
             -H "X-Secret-Key: ${{ secrets.ACTION_SECRET_KEY }}" \
-            http://127.0.0.1:8000/auth/api/email-reactivation-test/
+            https://api.sectors.app/auth/api/email-reactivation/ \
+            -o "$FILENAME"
+          echo "Saved API response to $FILENAME"
+
+      - name: Upload API Response Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: api-response
+          path: api_response_*.json
