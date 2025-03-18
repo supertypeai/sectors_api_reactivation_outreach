@@ -2,7 +2,7 @@ name: Trigger Email Reactivation API
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Runs every day at midnight UTC (adjust as needed)
+    - cron: "0 3 * * *" # 10 AM WIB
   workflow_dispatch:
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
           echo "Saved API response to $FILENAME"
 
       - name: Upload API Response Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: api-response
           path: api_response_*.json
