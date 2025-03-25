@@ -23,7 +23,7 @@ jobs:
           curl -s -X POST \
             -H "Content-Type: application/json" \
             -H "X-Secret-Key: ${{ secrets.ACTION_SECRET_KEY }}" \
-            https://api.sectors.app/auth/api/email-reactivation/ \
+            https://api.sectors.app/auth/email-reactivation/ \
             -o "$RESPONSE_FILE" | tee "$LOG_FILE"
           echo "Saved API response to $RESPONSE_FILE and log to $LOG_FILE"
 
