@@ -12,31 +12,24 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4.2.2
 
-      - name: Call Email Reactivation API, Save Response & Log
+      - name: Call Email Reactivation API & Save Response
         env:
           ACTION_SECRET_KEY: ${{ secrets.ACTION_SECRET_KEY }}
         run: |
           # Get the current timestamp
           TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
-          # Define filenames for the API response and log
+          # Define filename for the API response
           RESPONSE_FILE="api_response_${TIMESTAMP}.json"
-          LOG_FILE="api_log_${TIMESTAMP}.log"
-          # Call the API and save its response; log output using tee
+          # Call the API and save its response
           curl -s -X POST \
             -H "Content-Type: application/json" \
             -H "X-Secret-Key: $ACTION_SECRET_KEY" \
             https://api.sectors.app/auth/email-reactivation/ \
-            -o "$RESPONSE_FILE" | tee "$LOG_FILE"
-          echo "Saved API response to $RESPONSE_FILE and log to $LOG_FILE"
+            -o "$RESPONSE_FILE"
+          echo "Saved API response to $RESPONSE_FILE"
 
       - name: Upload API Response Artifact
         uses: actions/upload-artifact@v4.6.2
         with:
           name: api-response
           path: api_response_*.json
-
-      - name: Upload API Log Artifact
-        uses: actions/upload-artifact@v4.6.2
-        with:
-          name: api-log
-          path: api_log_*.log
