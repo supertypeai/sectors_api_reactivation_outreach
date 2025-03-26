@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Call Email Reactivation API, Save Response & Log
         env:
@@ -30,13 +30,13 @@ jobs:
           echo "Saved API response to $RESPONSE_FILE and log to $LOG_FILE"
 
       - name: Upload API Response Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: api-response
           path: api_response_*.json
 
       - name: Upload API Log Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: api-log
           path: api_log_*.log
