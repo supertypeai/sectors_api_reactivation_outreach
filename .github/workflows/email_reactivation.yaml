@@ -6,11 +6,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  trigger:
+  trigger_workflow:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Call Email Reactivation API, Save Response & Log
         run: |
