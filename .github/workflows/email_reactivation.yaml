@@ -8,28 +8,54 @@ on:
 jobs:
   trigger_workflow:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git Configuration
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Call Email Reactivation API & Save Response
         env:
           ACTION_SECRET_KEY: ${{ secrets.ACTION_SECRET_KEY }}
         run: |
-          # Get the current timestamp
-          TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
-          # Define filename for the API response
-          RESPONSE_FILE="api_response_${TIMESTAMP}.json"
-          # Call the API and save its response
-          curl -s -X POST \
+          # Create directory structure for logs (neatly organized by Year-Month and Day)
+          YEAR_MONTH=$(date +"%Y-%m")
+          DAY=$(date +"%d")
+          TIMESTAMP=$(date +"%H-%M-%S")
+          LOG_DIR="logs/${YEAR_MONTH}/${DAY}"
+
+          mkdir -p "$LOG_DIR"
+          RESPONSE_FILE="${LOG_DIR}/api_response_${TIMESTAMP}.json"
+
+          # Call API with -f to fail on HTTP errors and -s to be silent
+          if curl -f -s -X POST \
             -H "Content-Type: application/json" \
             -H "X-Secret-Key: $ACTION_SECRET_KEY" \
             https://api.sectors.app/auth/email-reactivation/ \
-            -o "$RESPONSE_FILE"
-          echo "Saved API response to $RESPONSE_FILE"
+            -o "$RESPONSE_FILE"; then
+            echo "Successfully saved API response to $RESPONSE_FILE"
+          else
+            echo "Error: API call failed. Creating error log instead."
+            echo '{"status": "error", "message": "API call failed at '"$(date)"'"}' > "$RESPONSE_FILE"
+          fi
 
-      - name: Upload API Response Artifact
-        uses: actions/upload-artifact@v4.6.2
-        with:
-          name: api-response
-          path: api_response_*.json
+      - name: Sync Logs to Repository
+        run: |
+          # Ensure we have the latest version of the repository
+          git pull origin ${{ github.ref_name }} --rebase
+
+          # Add logs and check for changes
+          git add logs/
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: add api response log for $(date +'%Y-%m-%d %H:%M:%S')"
+            git push origin ${{ github.ref_name }}
+          else
+            echo "No new logs to commit."
+          fi
